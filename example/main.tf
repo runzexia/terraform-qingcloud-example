@@ -88,3 +88,7 @@ resource "qingcloud_security_group_rule" "ssh-in" {
   from_port         = 22
   to_port           = 22
 }
+
+output "ip" {
+  value = "${qingcloud_vpc.foo.public_ip}"
+}
