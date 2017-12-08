@@ -80,4 +80,30 @@ commands will detect it and remind you to do so if necessary.
 ```
 #### 指定provider
 
+在`./example/var.tf`文件我们指定了provider，qingcloud的provider需要`access_key`与`secret_key`进行调用API，key可以在qingcloud Web控制台进行申请。  
+`zone`指定了资源会在哪个区中进行创建，默认为pek3a区。
+
+#### 理解resource
+
+HCL语言是一种声明式语言，即在`*.tf`文件中声明了我们所期望的资源状态。  
+我们在`example/main.tf`文件当中指定了我们想要的资源以及他们的状态。  
+在定义的资源的时候我们可以在一个资源当中引用其他资源的字段，terraform会自动解析这些引用并且按顺序进行创建。  
+```hcl-terraform
+resource "qingcloud_security_group_rule" "ssh-in" {
+  security_group_id = "${qingcloud_security_group.foo.id}" //引用别名为foo的qingcloud_security_group的id
+  protocol          = "tcp"
+  priority          = 0
+  action            = "accept"
+  direction         = 0
+  from_port         = 22
+  to_port           = 22
+}
+```
+在上面的例子当中，`qingcloud_security_group_rule`为资源的名称，需要provider支持特定的资源。  
+`ssh-in`为资源的别名，是在这个项目当中唯一的。  
+上面我们创建了一个类型为`qingcloud_security_group_rule`的资源，也就是一个防火墙规则资源。  
+在这个资源中我们指定了防火墙的ID，以及一些其他参数。  
+
+
+
 
