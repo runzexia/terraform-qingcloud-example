@@ -12,6 +12,28 @@ resource "qingcloud_instance" "foo" {
   managed_vxnet_id = "${qingcloud_vxnet.foo.id}"
 }
 
+resource "null_resource" "run_docker_nginx" {
+  depends_on = [ "qingcloud_vpc_static.ssh-portforward" ,
+              "qingcloud_vpc_static.http-portforward",
+              "qingcloud_security_group_rule.ssh-in",
+              "qingcloud_security_group_rule.http-in",
+              "qingcloud_instance.foo" ]
+  provisioner "remote-exec" {
+    inline = [
+      "curl -fsSL get.docker.com -o get-docker.sh",
+      "sh get-docker.sh",
+      "systemctl start docker",
+      "docker run --name docker-nginx -d -p 80:80 nginx",
+    ]
+    connection {
+      type = "ssh"
+      user = "root"
+      host = "${qingcloud_vpc.foo.public_ip}"
+      private_key = "${file("~/.ssh/id_rsa")}"
+    }
+  }
+}
+
 resource "qingcloud_security_group" "foo" {
   name = "first_sg"
 }
