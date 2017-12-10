@@ -102,8 +102,91 @@ resource "qingcloud_security_group_rule" "ssh-in" {
 在上面的例子当中，`qingcloud_security_group_rule`为资源的名称，需要provider支持特定的资源。  
 `ssh-in`为资源的别名，是在这个项目当中唯一的。  
 上面我们创建了一个类型为`qingcloud_security_group_rule`的资源，也就是一个防火墙规则资源。  
-在这个资源中我们指定了防火墙的ID，以及一些其他参数。  
+在这个资源中我们指定了防火墙的ID，以及规则的协议、优先级、动作、方向以及端口范围。  
+
+* qingcloud_eip.foo:创建一个带宽为2的弹性公网IP  
+* qingcloud_keypair.foo:使用`~/.ssh/id_rsa.pub`的文件内容创建一个SSH key 
+* qingcloud_security_group.foo:创建一个名称为first_sg的防火墙
+* qingcloud_security_group_rule.http-in:为防火墙添加一条接收80端口TCP请求的规则
+* qingcloud_security_group_rule.http-in:为防火墙添加一条接收22端口TCP请求的规则
+* qingcloud_vpc.foo:创建一个vpc网络，并且绑定了防火墙与弹性公网IP,VPC的子网范围为`192.168.0.0/16`
+* qingcloud_vxnet:创建一个受管的vxnet，并且加入VPC当中，子网范围是`192.168.0.0/24`
+* qingcloud_instance.foo:创建一个实例，绑定了上面创建的SSH key，并且加入到了vxnet当中
+* qingcloud_vpc_static.http-portforward:为VPC添加一条端口转发规则，将80端口的请求转发到instance的80端口当中
+* qingcloud_vpc_static.ssh-portforward:为VPC添加一条端口转发规则，将22端口的请求转发到instance的22端口当中
+
+#### 使用Provisioners进行环境配置
+
+Provisioners可以在资源创建/销毁时在本地/远程执行脚本。  
+Provisioners通常用来引导一个资源，在销毁资源前完成清理工作，进行配置管理等。  
+Provisioners可以添加在任何的resource当中：  
+
+```hcl-terraform
+resource "qingcloud_instance" "foo" {
+  # ...
+
+  provisioner "local-exec" {
+    command = "echo ${self.private_ip} > file.txt"
+  }
+}
+```
+
+在example当中，我们使用了null_resource再加上provisioner完成了在qingcloud_instance上安装docker并启动docker-nginx。  
+在`null_resource.run_docker_nginx`当中，我们指定了`depends_on`参数，保证了在所有依赖资源创建完成后再进行执行`provisioner`。  
+
+##### 执行terraform plan查看terraform计划
+
+`terraform plan`命令用于输出执行计划。除非明确禁用，terraform会调用refresh方法重新查询当前资源的状态。  
+完成状态刷新后，terraform会自动分析要进行的操作以达到配置文件中所需要的状态，并把分析的结果输出出来。
+在example文件夹下执行`terraform plan`会`得到类似下面的结果：
+```text
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but will not be
+persisted to local or remote state storage.
 
 
+------------------------------------------------------------------------
+
+An execution plan has been generated and is shown below.
+Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  + null_resource.run_docker_nginx
+      id:                <computed>
+
+  + qingcloud_eip.foo
+      id:                <computed>
+      addr:              <computed>
+      bandwidth:         "2"
+      billing_mode:      "bandwidth"
+      need_icp:          "0"
+      resource.%:        <computed>
+      tag_names.#:       <computed>
+
+  + qingcloud_instance.foo
+      id:                <computed>
+      cpu:               "1"
+      image_id:          "centos73x64"
+      instance_class:    "0"
+      keypair_ids.#:     <computed>
+      managed_vxnet_id:  "${qingcloud_vxnet.foo.id}"
+      memory:            "1024"
+      private_ip:        <computed>
+      public_ip:         <computed>
+      security_group_id: <computed>
+      tag_names.#:       <computed>
+
+......
 
 
+Plan: 11 to add, 0 to change, 0 to destroy.
+
+------------------------------------------------------------------------
+
+Note: You didn't specify an "-out" parameter to save this plan, so Terraform
+can't guarantee that exactly these actions will be performed if
+"terraform apply" is subsequently run.
+
+```
