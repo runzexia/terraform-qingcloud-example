@@ -134,7 +134,7 @@ resource "qingcloud_instance" "foo" {
 在example当中，我们使用了null_resource再加上provisioner完成了在qingcloud_instance上安装docker并启动docker-nginx。  
 在`null_resource.run_docker_nginx`当中，我们指定了`depends_on`参数，保证了在所有依赖资源创建完成后再进行执行`provisioner`。  
 
-##### 执行terraform plan查看terraform计划
+#### 执行terraform plan查看terraform计划
 
 `terraform plan`命令用于输出执行计划。除非明确禁用，terraform会调用refresh方法重新查询当前资源的状态。  
 完成状态刷新后，terraform会自动分析要进行的操作以达到配置文件中所需要的状态，并把分析的结果输出出来。
@@ -190,3 +190,27 @@ can't guarantee that exactly these actions will be performed if
 "terraform apply" is subsequently run.
 
 ```
+
+#### 使用terraform apply提交资源创建及配置
+
+`terraform apply`命令用于应用所需的更改以达到所需的配置状态。
+为了更加方便的得到我们所关注的输出结果，可以使用output单独输出部分字段。
+如在`example/main.tf`当中，我们单独获取了`qingcloud_vpc.foo`的public_ip：
+
+```hcl-terraform
+output "ip" {
+  value = "${qingcloud_vpc.foo.public_ip}"
+}
+```
+
+填写example/var.tf中的`access_key`与`secret_key`后，我们使用`terraform apply`可以完成资源的创建与配置。
+
+> 注意  
+> 使用terraform apply会创建实际的资源，将会产生一些费用。
+
+我们会在输出的结尾获取到类似下图的输出：  
+ ![output.jpg](./images/output.jpg)  
+ 打开浏览器，输入output的IP，可以看到nginx以及响应请求：  
+ ![nginx.jpg](./images/nginx.jpg)  
+ 
+ 
