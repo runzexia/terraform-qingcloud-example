@@ -96,6 +96,10 @@ terraform-provider-qingcloud同样是以二进制文件进行发布，我们可�
 ### 2.terraform使用
 
 我们将会介绍如何使用terraform，并且进行一键在青云平台创建下图的结构，并在主机当中运行docker以及nginx。  
+
+> 注意    
+> 使用terraform apply会创建实际的资源，将会产生一些费用。  
+
  ![topo.jpg](./images/topo.jpg)
 
 #### 理解配置文件
@@ -132,6 +136,16 @@ If you ever set or change modules or backend configuration for Terraform,
 rerun this command to reinitialize your working directory. If you forget, other
 commands will detect it and remind you to do so if necessary.
 ```
+##### 验证terraform init
+在example文件夹下运行`terraform -v`会得到类似下面的输出：
+```shell
+$ terraform -v
+Terraform v0.11.1
++ provider.null v1.0.0
++ provider.qingcloud (unversioned)
+
+```
+
 #### 指定provider
 
 在`./example/var.tf`文件我们指定了provider，qingcloud的provider需要`access_key`与`secret_key`进行调用API，key可以在Qingcloud Web控制台进行申请。  
@@ -259,9 +273,6 @@ output "ip" {
 ```
 
 填写example/var.tf中的`access_key`与`secret_key`后，我们使用`terraform apply`可以完成资源的创建与配置。
-
-> 注意    
-> 使用terraform apply会创建实际的资源，将会产生一些费用。  
 
 我们会在输出的结尾获取到类似下图的输出：  
  ![output.jpg](./images/output.jpg)  
