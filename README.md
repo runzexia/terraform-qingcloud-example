@@ -2,11 +2,14 @@
 
 ## 什么是Terraform？
 
-Terraform是一个安全、高效的进行基础设施的构建、更改、版本化的工具。  
-  
-配置文件向Terraform描述运行单个应用程序或整个数据中心所需的组件。  
-Terraform生成一个执行计划，描述如何达到所需的状态，然后执行它来构建所描述的基础架构。  
-随着配置更改，Terraform能够确定更改的内容，并创建可应用的增量执行计划。
+Terraform是一个安全、高效的进行基础设施的部署、更改、版本化的工具。  
+
+Terraform用配置文件来描述应用所需的组件。 
+Terraform会根据配置文件生成一个执行计划，这个计划会列出为达到所需的状态而执行的操作，然后执行计划以达到期望的状态。  
+如果配置被更改，Terraform能够通过比对得到更改的内容，并创建对应的增量执行计划。 
+terraform通过插件机制管理不同的资源提供者，以此来接入各种资源，如虚拟机，存储，网络和各种应用服务。
+
+## 使用Terraform的好处
 
 ### Infrastructure as Code
 
@@ -14,14 +17,14 @@ Terraform生成一个执行计划，描述如何达到所需的状态，然后�
 
 ### Execution Plans
 
-Terraform有一个"plan"步骤，它生成一个执行计划。  
+Terraform有一个规划步骤，它生成一个执行计划。  
 执行计划显示当您调用应用程序时Terraform将执行的操作。  
 使用这个功能可以保证操作基础设施时不发生意外。
 
 ### Resource Graph
 
 Terraform创建了一个所有资源的视图。这使得Terraform可以并行化没有依赖的创建与修改。  
-因此，Terraform可以高效地构建基础架构。  
+因此，Terraform可以高效地构建基础架构。操作员也能更加了解环境的结构。 
 
 ### Change Automation
 
@@ -45,7 +48,11 @@ Chef, Puppet, Ansible, and SaltStack 都可以称为配置管理工具，这些�
 而Terraform和CloudFormation 可以称为编排工具，更注重于数据中心以及相关服务的高级抽象。他们的工作重点是创建资源并且引导进行初始化。  
 而且在现在的环境下，大家使用容器等服务，镜像已经包括了软件的安装与配置。一旦你有了镜像，值
 
-
+## Terraform的使用场景
++ 多层应用的部署
++ 自动搭建全新的测试环境
++ 软件定义网络的配置
++ 多云环境的部署
 
 ## Terraform-QingCloud使用
 
@@ -63,7 +70,7 @@ Chef, Puppet, Ansible, and SaltStack 都可以称为配置管理工具，这些�
 在安装完terraform之后，我们可以打开一个新的终端来验证terraform安装成功了。  
 执行`terraform`可以看到类似下面的输出：
 
-```text
+```shell
 $ terraform
 Usage: terraform [--version] [--help] <command> [args]
 
@@ -95,7 +102,7 @@ terraform-provider-qingcloud同样是以二进制文件进行发布，我们可�
 
 像git一样，每个terraform项目都需要自己的目录，我们可以直接使用example目录进行试验。  
 在example目录下面执行terraform相关命令时，terraform会加载这个目录下的`*.tf`文件。  
-terraform的配置文件是HashiCorp公司的[HCL](https://github.com/hashicorp/hcl)语言。
+terraform的配置文件是HashiCorp公司的[HCL](https://www.terraform.io/docs/configuration/syntax.html)语言。
 
 #### terraform init
 
@@ -127,7 +134,7 @@ commands will detect it and remind you to do so if necessary.
 ```
 #### 指定provider
 
-在`./example/var.tf`文件我们指定了provider，qingcloud的provider需要`access_key`与`secret_key`进行调用API，key可以在qingcloud Web控制台进行申请。  
+在`./example/var.tf`文件我们指定了provider，qingcloud的provider需要`access_key`与`secret_key`进行调用API，key可以在Qingcloud Web控制台进行申请。  
 `zone`指定了资源会在哪个区中进行创建，默认为pek3a区。
 
 #### 理解resource
@@ -135,7 +142,7 @@ commands will detect it and remind you to do so if necessary.
 HCL语言是一种声明式语言，即在`*.tf`文件中声明了我们所期望的资源状态。  
 我们在`example/main.tf`文件当中指定了我们想要的资源以及他们的状态。  
 在定义的资源的时候我们可以在一个资源当中引用其他资源的字段，terraform会自动解析这些引用并且按顺序进行创建。  
-```hcl-terraform
+```hcl
 resource "qingcloud_security_group_rule" "ssh-in" {
   security_group_id = "${qingcloud_security_group.foo.id}" //引用别名为foo的qingcloud_security_group的id
   protocol          = "tcp"
@@ -253,8 +260,8 @@ output "ip" {
 
 填写example/var.tf中的`access_key`与`secret_key`后，我们使用`terraform apply`可以完成资源的创建与配置。
 
-> 注意  
-> 使用terraform apply会创建实际的资源，将会产生一些费用。
+> 注意    
+> 使用terraform apply会创建实际的资源，将会产生一些费用。  
 
 我们会在输出的结尾获取到类似下图的输出：  
  ![output.jpg](./images/output.jpg)  
