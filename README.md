@@ -299,6 +299,7 @@ output "ip" {
 ```
 
 填写example/var.tf中的`access_key`与`secret_key`后，我们使用`terraform apply`可以完成资源的创建与配置。
+
 > 注意    
 > 在example中是根据文件来获取SSH key，在您机器上可能不存在此文件，请您自行创建SSH key。  
 
@@ -310,3 +311,8 @@ output "ip" {
  ![nginx.jpg](./images/nginx.jpg)  
 
  
+## Reference
+Terraform官网：[https://www.terraform.io](https://www.terraform.io)  
+Terraform青云官方Github：[https://github.com/yunify/terraform-provider-qingcloud](https://github.com/yunify/terraform-provider-qingcloud)  
+Why we use Terraform ： [https://blog.gruntwork.io/why-we-use-terraform-and-not-chef-puppet-ansible-saltstack-or-cloudformation-7989dad2865c] (https://blog.gruntwork.io/why-we-use-terraform-and-not-chef-puppet-ansible-saltstack-or-cloudformation-7989dad2865c)  
+Multi-Cloud模式下Terraform和Packer开源工具实践分享：[https://yq.aliyun.com/articles/79509](https://yq.aliyun.com/articles/79509)  
