@@ -119,6 +119,7 @@ resource "qingcloud_security_group_rule" "ssh-in" {
 
 Provisioners可以在资源创建/销毁时在本地/远程执行脚本。  
 Provisioners通常用来引导一个资源，在销毁资源前完成清理工作，进行配置管理等。  
+Provisioners拥有多种类型可以满足多种需求，如：文件传输(`file`)，本地执行(`local-exec`)，远程执行(`remote-exec`)等
 Provisioners可以添加在任何的resource当中：  
 
 ```hcl-terraform
