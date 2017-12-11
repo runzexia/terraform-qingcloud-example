@@ -14,7 +14,7 @@ Terraform生成一个执行计划，描述如何达到所需的状态，然后�
 
 ### Execution Plans
 
-Terraform有一个"plan"骤，它生成一个执行计划。  
+Terraform有一个"plan"步骤，它生成一个执行计划。  
 执行计划显示当您调用应用程序时Terraform将执行的操作。  
 使用这个功能可以保证操作基础设施时不发生意外。
 
@@ -26,6 +26,26 @@ Terraform创建了一个所有资源的视图。这使得Terraform可以并行�
 ### Change Automation
 
 Terraform会自动的分析什么是需要修改的，从而避免了许多可能的人为错误。
+
+## Terraform vs. Other Software
+
+与Terraform类似的Infrastructure as Code工具大概有下面几种：
+
+* [Chef](https://www.chef.io)
+* [Puppet](https://puppet.com)
+* [Ansible](https://www.ansible.com)
+* [SaltStack](https://saltstack.com)
+* [CloudFormation](https://aws.amazon.com/cn/cloudformation)
+
+下面将从几个方面来说明Terraform与其他工具对比的优势
+
+### 配置管理工具与编排工具
+
+Chef, Puppet, Ansible, and SaltStack 都可以称为配置管理工具，这些工具的主要目标是在已经存在的机器上安装和管理软件。  
+而Terraform和CloudFormation 可以称为编排工具，更注重于数据中心以及相关服务的高级抽象。他们的工作重点是创建资源并且引导进行初始化。  
+而且在现在的环境下，大家使用容器等服务，镜像已经包括了软件的安装与配置。一旦你有了镜像，值
+
+
 
 ## Terraform-QingCloud使用
 
