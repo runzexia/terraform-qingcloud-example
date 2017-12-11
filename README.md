@@ -299,6 +299,10 @@ output "ip" {
 ```
 
 填写example/var.tf中的`access_key`与`secret_key`后，我们使用`terraform apply`可以完成资源的创建与配置。
+> 注意    
+> 在example中是根据文件来获取SSH key，在您机器上可能不存在此文件，请您自行创建SSH key。  
+
+[如何创建SSH key](https://stackoverflow.com/questions/14102116/how-to-generate-ssh-on-github-using-terminal)
 
 我们会在输出的结尾获取到类似下图的输出：  
  ![output.jpg](./images/output.jpg)  
