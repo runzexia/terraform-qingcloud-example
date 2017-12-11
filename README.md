@@ -71,6 +71,17 @@ Chef, Puppet, and SaltStack在默认情况下都使用了客户端服务器架�
 CloudFormation也是客户端/服务器，但AWS透明地处理所有的服务器细节，作为最终用户，您只需要考虑客户端代码。Ansible客户端通过SSH直接连接到您的服务器。  
 Terraform使用云提供商API来配置基础架构，因此除了您已经使用云提供商之外，没有新的身份验证机制，并且不需要直接访问您的服务器。  
 
+### 比较结论表格
+
+|          | Chef        | Puppet      | Ansible     | SaltStack   | CloudFormation | Terraform   |
+| -------- | ----------- | ----------- | ----------- | ----------- | -------------- | ----------- |
+| 是否开源     | 开源 | 开源 | 开源 | 开源 | 闭源  | 开源 |
+| 支持的云    | All         | All         | All         | All         | AWS only       | All         |
+| 工具类型     | 配置管理        | 配置管理        | 配置管理        | 配置管理        | 编排工具           | 编排工具        |
+| 语言类型 | 编程式         | 声明式         | 编程式         | 声明式         | 声明式            | 声明式         |
+| 架构       | 客户端服务器      | 客户端服务器      | 客户端         | 客户端服务器      | 客户端            | 客户端         |
+
+
 ## Terraform的使用场景
 
 + 多层应用的部署
@@ -293,5 +304,5 @@ output "ip" {
  ![output.jpg](./images/output.jpg)  
  打开浏览器，输入output的IP，可以看到nginx以及响应请求：  
  ![nginx.jpg](./images/nginx.jpg)  
- 
+
  
