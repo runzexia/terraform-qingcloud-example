@@ -9,7 +9,7 @@ Terraform会根据配置文件生成一个执行计划，这个计划会列出�
 如果配置被更改，Terraform能够通过比对得到更改的内容，并创建对应的增量执行计划。 
 terraform通过插件机制管理不同的资源提供者，以此来接入各种资源，如虚拟机，存储，网络和各种应用服务。
 
-## 使用Terraform的好处
+## Terraform的主要特性
 
 ### Infrastructure as Code
 
