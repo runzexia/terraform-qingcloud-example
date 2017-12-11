@@ -1,5 +1,32 @@
 # Terraform - Infrastructure as Code
 
+## 什么是Terraform？
+
+Terraform是一个安全、高效的进行基础设施的构建、更改、版本化的工具。  
+  
+配置文件向Terraform描述运行单个应用程序或整个数据中心所需的组件。  
+Terraform生成一个执行计划，描述如何达到所需的状态，然后执行它来构建所描述的基础架构。  
+随着配置更改，Terraform能够确定更改的内容，并创建可应用的增量执行计划。
+
+### Infrastructure as Code
+
+基础架构使用配置语法进行描述，这可以让数据中心的构建计划可以像其他代码一样进行版本化和追踪。
+
+### Execution Plans
+
+Terraform有一个"plan"骤，它生成一个执行计划。  
+执行计划显示当您调用应用程序时Terraform将执行的操作。  
+使用这个功能可以保证操作基础设施时不发生意外。
+
+### Resource Graph
+
+Terraform创建了一个所有资源的视图。这使得Terraform可以并行化没有依赖的创建与修改。  
+因此，Terraform可以高效地构建基础架构。  
+
+### Change Automation
+
+Terraform会自动的分析什么是需要修改的，从而避免了许多可能的人为错误。
+
 ## Terraform-QingCloud使用
 
 ### 1.terraform及terraform-provider-qingcloud安装
