@@ -120,6 +120,7 @@ terraform-provider-qingcloud同样是以二进制文件进行发布，我们可�
 ### 2.terraform使用
 
 我们将会介绍如何使用terraform，并且进行一键在青云平台创建下图的结构，并在主机当中运行docker以及nginx。  
+例子源码：https://github.com/yunify/terraform-provider-qingcloud/tree/master/terraform/example/vpc_one_instance
 
 > 注意    
 > 使用terraform apply会创建实际的资源，将会产生一些费用。  
@@ -128,15 +129,15 @@ terraform-provider-qingcloud同样是以二进制文件进行发布，我们可�
 
 #### 理解配置文件
 
-像git一样，每个terraform项目都需要自己的目录，我们可以直接使用example目录进行试验。  
-在example目录下面执行terraform相关命令时，terraform会加载这个目录下的`*.tf`文件。  
+像git一样，每个terraform项目都需要自己的目录，我们可以直接使用vpc_one_instance目录进行试验。  
+在vpc_one_instance目录下面执行terraform相关命令时，terraform会加载这个目录下的`*.tf`文件。  
 terraform的配置文件是HashiCorp公司的[HCL](https://www.terraform.io/docs/configuration/syntax.html)语言。
 
 #### terraform init
 
 与git类似，我们需要在terraform项目的根目录运行terraform init去初始化项目。  
 在初始化项目的时候，terraform会解析目录下的`*.tf`文件并加载相关的provider插件。
-在example文件夹下运行`terraform init`会看到类似下面的输出：
+在vpc_one_instance文件夹下运行`terraform init`会看到类似下面的输出：
 ```shell
 $ terraform init
 Initializing provider plugins...
@@ -162,7 +163,7 @@ rerun this command to reinitialize your working directory. If you forget, other
 commands will detect it and remind you to do so if necessary.
 ```
 ##### 验证terraform init
-在example文件夹下运行`terraform -v`会得到类似下面的输出：
+在vpc_one_instance文件夹下运行`terraform -v`会得到类似下面的输出：
 ```shell
 $ terraform -v
 Terraform v0.11.1
@@ -173,13 +174,13 @@ Terraform v0.11.1
 
 #### 指定provider
 
-在`./example/var.tf`文件我们指定了provider，qingcloud的provider需要`access_key`与`secret_key`进行调用API，key可以在Qingcloud Web控制台进行申请。  
+在`./vpc_one_instance/var.tf`文件我们指定了provider，qingcloud的provider需要`access_key`与`secret_key`进行调用API，key可以在Qingcloud Web控制台进行申请。  
 `zone`指定了资源会在哪个区中进行创建，默认为pek3a区。
 
 #### 理解resource
 
 HCL语言是一种声明式语言，即在`*.tf`文件中声明了我们所期望的资源状态。  
-我们在`example/main.tf`文件当中指定了我们想要的资源以及他们的状态。  
+我们在`vpc_one_instance/main.tf`文件当中指定了我们想要的资源以及他们的状态。  
 在定义的资源的时候我们可以在一个资源当中引用其他资源的字段，terraform会自动解析这些引用并且按顺序进行创建。  
 ```hcl
 resource "qingcloud_security_group_rule" "ssh-in" {
@@ -232,7 +233,7 @@ resource "qingcloud_instance" "foo" {
 
 `terraform plan`命令用于输出执行计划。除非明确禁用，terraform会调用refresh方法重新查询当前资源的状态。  
 完成状态刷新后，terraform会自动分析要进行的操作以达到配置文件中所需要的状态，并把分析的结果输出出来。
-在example文件夹下执行`terraform plan`会`得到类似下面的结果：
+在vpc_one_instance文件夹下执行`terraform plan`会`得到类似下面的结果：
 ```shell
 $ terraform plan
 Refreshing Terraform state in-memory prior to plan...
@@ -290,7 +291,7 @@ can't guarantee that exactly these actions will be performed if
 
 `terraform apply`命令用于应用所需的更改以达到所需的配置状态。
 为了更加方便的得到我们所关注的输出结果，可以使用output单独输出部分字段。
-如在`example/main.tf`当中，我们单独获取了`qingcloud_vpc.foo`的public_ip：
+如在`vpc_one_instance/main.tf`当中，我们单独获取了`qingcloud_vpc.foo`的public_ip：
 
 ```hcl-terraform
 output "ip" {
@@ -298,7 +299,7 @@ output "ip" {
 }
 ```
 
-填写example/var.tf中的`access_key`与`secret_key`后，我们使用`terraform apply`可以完成资源的创建与配置。
+填写`vpc_one_instance/var.tf`中的`access_key`与`secret_key`后，我们使用`terraform apply`可以完成资源的创建与配置。
 
 > 注意    
 > 在example中是根据文件来获取SSH key，在您机器上可能不存在此文件，请您自行创建SSH key。  
