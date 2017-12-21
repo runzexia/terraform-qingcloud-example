@@ -9,7 +9,7 @@ Terraform会根据配置文件生成一个执行计划，这个计划会列出�
 如果配置被更改，Terraform能够通过比对得到更改的内容，并创建对应的增量执行计划。 
 terraform通过插件机制管理不同的资源提供者，以此来接入各种资源，如虚拟机，存储，网络和各种应用服务。
 
-## Terraform的主要特性
+## Terraform的主要功能
 
 ### Infrastructure as Code
 
@@ -84,93 +84,121 @@ Terraform使用云提供商API来配置基础架构，因此除了您已经使�
 
 ## Terraform的使用场景
 
-在下文的例子当中我们将解释为什么terraform适合下列场景：  
+* 管理多层应用
 
-* 多层应用的部署
-* 一次性测试环境
+terraform 对底层资源架构进行了良好抽象的同时，也支持调用配置管理工具实现节点的配置，并非常优雅的处理了资源之间的依赖。用户可以使用一个工具管理从底层资源创建到软件配置部署整个过程。
+
+* 环境自动部署
+
+由于搭建环境全部自动化，结合云的随需随取的能力，terraform可以极大减少开发测试团队重复准备环境的负担，减少人为错误，提高工作效率。
+
 * 软件定义网络的配置
+
+软件定义网络技术使团队能够更好控制网络为上层的应用服务，同时也带来了人为管理负担。使用Terraform来描述资源并结合版本管理工具实现环境的版本化。给应用提供更可靠的环境。
+
 * 多云环境的部署
 
+terraform将所有服务抽象为资源，使用同一种方式操作，屏蔽了具体细节，因而极大的方便用户协调不同种类，不同层级的服务。同时可以使用模块来重用配置文件，使配置代码逻辑更加清晰。
+
 ## Terraform-QingCloud使用
+
+下面我们以wordpress为例演示如何使用Terraform在青云中从零开始部署一整套环境。实例将部署下图中所示的网络，虚拟机以及软件资源。
+例子源码：https://github.com/yunify/terraform-provider-qingcloud/tree/master/terraform/example/wordpress
+
+ ![topo.jpg](./images/terraform.png)
+
+> 注意    
+> 使用terraform apply会创建实际的资源，将会产生一些费用。 
 
 ### 1.terraform及terraform-provider-qingcloud安装
 
 #### 安装terraform
 
-我们首先安装terraform，我们需要进到terraform的官网找到[适合的软件包](https://www.terraform.io/downloads.html)进行下载。  
-下载Terraform后，解压压缩包。压缩包中有一个名为terraform的文件，我们只需要这个二进制文件就可以使用terraform了。  
-最后一步是设置terraform的PATH。如何在Linux和Mac中设置PATH可以参考这个[页面](https://stackoverflow.com/questions/14637979/how-to-permanently-set-path-on-linux-unix)，
-如何在Windows当中设置PATH可以参考这个[页面](https://stackoverflow.com/questions/1618280/where-can-i-set-path-to-make-exe-on-windows)
+我们需要到terraform的官网找到[适合的软件包](https://www.terraform.io/downloads.html)进行下载解压并将二进制程序放在PATH路径中。
 
-#### 验证terraform安装
-
-在安装完terraform之后，我们可以打开一个新的终端来验证terraform安装成功了。  
-执行`terraform -v`可以看到类似下面的输出：
+安装成功后，在终端执行`terraform -v`可以看到类似下面的输出：
 
 ```shell
 $ terraform -v
 Terraform v0.11.1
 ```
 
-#### 安装terraform-provider-qingcloud
-
-terraform-provider-qingcloud同样是以二进制文件进行发布，我们可以到Github上找到[适合的软件包](https://github.com/yunify/terraform-provider-qingcloud/releases)进行下载。  
-下载完成后里面会包含一个二进制文件，解压压缩包。  
-在Linux以及Mac当中我们需要将文件名改为`terraform-provider-qingcloud`，并把这个二进制文件放到用户的"Application Data" 目录下的`terraform.d/plugins/`当中.  
-在Windows当中我们需要将文件名改为`terraform-provider-qingcloud.exe`，并把这个二进制文件放到`~/.terraform.d/plugins/`当中。 
-
-### 2.terraform使用-以wordpress为例
-
-我们将会介绍如何使用terraform，并且进行一键在青云平台创建下图的结构，并在两台主机当中分别运行wordpress与mysql，最终将wordpress暴露在公网当中。  
-例子源码：https://github.com/yunify/terraform-provider-qingcloud/tree/master/terraform/example/wordpress
-
-> 注意    
-> 使用terraform apply会创建实际的资源，将会产生一些费用。  
-
- ![topo.jpg](./images/terraform.png)
-
 #### 理解配置文件
 
-像git一样，每个terraform项目都需要自己的目录，我们可以直接使用vpc_one_instance目录进行试验。  
-在vpc_one_instance目录下面执行terraform相关命令时，terraform会加载这个目录下的`*.tf`文件。  
-terraform的配置文件是HashiCorp公司的[HCL](https://www.terraform.io/docs/configuration/syntax.html)语言。
+Terraform所有的配置文件以tf作为后缀名。在执行相关命令时，terraform会自动加载当前目录下的`*.tf`文件。  
+Terraform的配置文件遵循HashiCorp公司的[HCL](https://www.terraform.io/docs/configuration/syntax.html)规范。
 
-#### terraform init
+#### terraform 项目初始化
 
 与git类似，我们需要在terraform项目的根目录运行terraform init去初始化项目。  
 在初始化项目的时候，terraform会解析目录下的`*.tf`文件并加载相关的provider插件。
-在vpc_one_instance文件夹下运行`terraform init`会看到类似下面的输出：
+
 ```shell
 $ terraform init
 Initializing modules...
 - module.qingcloud
+  Getting source "./modules/qingcloud"
 - module.wordpress
+  Getting source "./modules/wordpress"
 
 Initializing provider plugins...
+- Checking for available provider plugins on https://releases.hashicorp.com...
 
-The following providers do not have any version constraints in configuration,
-so the latest version was installed.
+Provider "qingcloud" not available for installation.
 
-To prevent automatic upgrades to new major versions that may contain breaking
-changes, it is recommended to add version = "..." constraints to the
-corresponding provider blocks in configuration, with the constraint strings
-suggested below.
+A provider named "qingcloud" could not be found in the official repository.
 
-* provider.null: version = "~> 1.0"
+This may result from mistyping the provider name, or the given provider may
+be a third-party provider that cannot be installed automatically.
 
-Terraform has been successfully initialized!
+In the latter case, the plugin must be installed manually by locating and
+downloading a suitable distribution package and placing the plugin's executable
+file in the following directory:
+    terraform.d/plugins/darwin_amd64  （自定义插件会放在这里）
 
-You may now begin working with Terraform. Try running "terraform plan" to see
-any changes that are required for your infrastructure. All Terraform commands
-should now work.
+Terraform detects necessary plugins by inspecting the configuration and state.
+To view the provider versions requested by each module, run
+"terraform providers".
 
-If you ever set or change modules or backend configuration for Terraform,
-rerun this command to reinitialize your working directory. If you forget, other
-commands will detect it and remind you to do so if necessary.
+- Downloading plugin for provider "null" (1.0.0)...
 ```
-##### 验证terraform init
-在vpc_one_instance文件夹下运行`terraform -v`会得到类似下面的输出：
+#### 安装qingcloud插件
+
+找到对应系统的的[qingcloud插件](https://github.com/yunify/terraform-provider-qingcloud/releases),解压后将二进制文件重命名为terraform-provider-qingcloud，并放置到工程文件的terraform.d/plugins/%系统架构%目录下。如下所示：
+
 ```shell
+$ ls -R
+input.tf    module.tf   modules     output.tf   provider.tf terraform.d
+
+./modules:
+qingcloud wordpress
+
+./modules/qingcloud:
+input.tf     output.tf    qingcloud.tf
+
+./modules/wordpress:
+input.tf          install_docker.sh output.tf         wordpress.tf
+
+./terraform.d:
+plugins
+
+./terraform.d/plugins:
+darwin_amd64
+
+./terraform.d/plugins/darwin_amd64:
+terraform-provider-qingcloud
+```
+
+##### 验证terraform init
+
+再次执行terraform init会显示初始化成功
+
+```shell
+$ terraform init
+.....
+Terraform has been successfully initialized!
+.....
+
 $ terraform -v
 Terraform v0.11.1
 + provider.null v1.0.0
@@ -187,7 +215,8 @@ Terraform v0.11.1
 
 HCL语言是一种声明式语言，即在`*.tf`文件中声明了我们所期望的资源状态。  
 我们在`./modules/qingcloud/qingcloud.tf`文件当中指定了我们想要的资源以及他们的状态。  
-在定义的资源的时候我们可以在一个资源当中引用其他资源的字段，terraform会自动解析这些引用并且按顺序进行创建。  
+在定义的资源的时候我们可以在一个资源当中引用其他资源的字段，terraform会自动解析这些引用并且按顺序进行创建。 
+
 ```hcl
 resource "qingcloud_security_group_rule" "ssh-wordpress-in" {
   security_group_id = "${qingcloud_security_group.foo.id}"   //引用别名为foo的qingcloud_security_group的id
@@ -204,21 +233,10 @@ resource "qingcloud_security_group_rule" "ssh-wordpress-in" {
 上面我们创建了一个类型为`qingcloud_security_group_rule`的资源，也就是一个防火墙规则资源。  
 在这个资源中我们指定了防火墙的ID，以及规则的协议、优先级、动作、方向以及端口范围。  
 
-* qingcloud_eip.foo:创建一个带宽为2的弹性公网IP  
-* qingcloud_keypair.foo:使用`~/.ssh/id_rsa.pub`的文件内容创建一个SSH key 
-* qingcloud_security_group.foo:创建一个名称为first_sg的防火墙
-* qingcloud_security_group_rule.http-in:为防火墙添加一条接收80端口TCP请求的规则
-* qingcloud_security_group_rule.ssh-wordpress-in:为防火墙添加一条接收22端口TCP请求的规则
-* qingcloud_security_group_rule.ssh-mysql-in:为防火墙添加一条接收2222端口TCP请求的规则
-* qingcloud_vpc.foo:创建一个vpc网络，并且绑定了防火墙与弹性公网IP,VPC的子网范围为`192.168.0.0/16`
-* qingcloud_vxnet:创建一个受管的vxnet，并且加入VPC当中，子网范围是`192.168.0.0/24`
-* qingcloud_instance.wordpress:创建一个实例，绑定了上面创建的SSH key，并且加入到了vxnet当中
-* qingcloud_instance.mysql:创建一个实例，绑定了上面创建的SSH key，并且加入到了vxnet当中
-* qingcloud_vpc_static.http-portforward:为VPC添加一条端口转发规则，将80端口的请求转发到instance的80端口当中
-* qingcloud_vpc_static.ssh-wordpress:为VPC添加一条端口转发规则，将22端口的请求转发到qingcloud_instance.wordpress的22端口当中
-* qingcloud_vpc_static.ssh-wordpress:为VPC添加一条端口转发规则，将2222端口的请求转发到qingcloud_instance.mysql的22端口当中
+其他的资源可以插件的[文档](https://github.com/yunify/terraform-provider-qingcloud/tree/master/website/docs)
 
-#### 使用Provisioners进行环境配置
+
+#### 使用Provisioners进行资源配置
 
 Provisioners可以在资源创建/销毁时在本地/远程执行脚本。  
 Provisioners通常用来引导一个资源，在销毁资源前完成清理工作，进行配置管理等。  
@@ -303,7 +321,7 @@ Terraform中的模块是以组的形式管理不同的Terraform配置。
   
 在例子当中我们将配置文件分成了两个module进行处理：  
 module qingcloud负责在qingcloud创建所需要的基础设施资源。  
-module wordpress负责在创建好的虚机当中安装docker并且启动wordpress与mysql。  
+ module wordpress负责在创建好的虚机当中安装docker并且启动wordpress与mysql。  
 其中需要安装wordpress的机器信息是通过input传入进来的，而传入进来的input实际上是module qingcloud的output，将两个模块连接到了一起。  
 在`./module.tf`当中，我们调用了两个module指定了两个module的参数传递关系。  
 
@@ -330,34 +348,6 @@ output "wordpress_public_ip" {
  ![output.jpg](./images/output.jpg)  
  打开浏览器，输入output的IP，可以看到wordpress已经正常运行：  
  ![nginx.jpg](./images/wordpress.jpg)  
-
-### 总结
-
-#### 多层应用的部署  
-
-一般来讲应用都是分为N层架构的，而我们的例子是一个非常典型的二层应用，分别是业务逻辑层的wordpress和数据层的mysql。  
-terraform确保数据库层在Web服务器启动前可用。这得益于terraform可以自动的去解析资源之间的关系，保证了有依赖关系的各层可以按顺序进行创建。  
-
-#### 多云环境的部署
-
-人们通常将基础架构分布在多个云中以提高容错性。通过仅使用单个区域或云提供商，容错受限于该提供商的可用性。进行多云部署可以更好地恢复地区或整个提供商的损失。  
-terraform是与云无关的，我们可以使用不同的provider实现多云环境的部署。  
-并且可以将一个项目拆分为多个module实现代码的复用。  
-前面的例子当中，我们分为了两个module，其中module wordpress是不依赖于云环境的module，我们可以在不同云提供商中复用这个module。  
-在同一个项目中同样可以使用多个提供者，甚至还能处理多个云当中的依赖关系。这可以帮助用户创建大型的云基础架构。  
-
-#### 软件定义网络的配置
-
-软件定义网络（SDN）在数据中心中越来越流行，它为用户提供了更多的控制权，并且使网络对应用的支持更加良好。  
-qingcloud vpc是一种非常典型的SDN，这种资源我们是可以利用terraform进行管理，完成SDN的配置。
-
-#### 一次性测试环境
-
-使用terraform测试环境是可以被编码的，这些配置文件可以在QA、开发等团队中进行分享。  
-并且terraform可以一键的进行资源的创建与删除，这可以帮助我们快速的创建测试环境，完成使用后可以进行及时的删除。  
-
-PS:qingcloud作为全球首家实现资源秒级响应并按秒计量的基础云服务商，使用terraform-qingcloud可以让用户的成本最大限度的贴合实际的资源使用情况。  
-
  
 ## Reference
 Terraform官网：[https://www.terraform.io](https://www.terraform.io)  
