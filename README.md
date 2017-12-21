@@ -84,10 +84,12 @@ Terraform使用云提供商API来配置基础架构，因此除了您已经使�
 
 ## Terraform的使用场景
 
-+ 多层应用的部署
-+ 自动搭建全新的测试环境
-+ 软件定义网络的配置
-+ 多云环境的部署
+在下文的例子当中我们将解释为什么terraform适合下列场景：  
+
+* 多层应用的部署
+* 自动搭建全新的测试环境
+* 软件定义网络的配置
+* 多云环境的部署
 
 ## Terraform-QingCloud使用
 
@@ -117,15 +119,15 @@ terraform-provider-qingcloud同样是以二进制文件进行发布，我们可�
 在Linux以及Mac当中我们需要将文件名改为`terraform-provider-qingcloud`，并把这个二进制文件放到用户的"Application Data" 目录下的`terraform.d/plugins/`当中.  
 在Windows当中我们需要将文件名改为`terraform-provider-qingcloud.exe`，并把这个二进制文件放到`~/.terraform.d/plugins/`当中。 
 
-### 2.terraform使用
+### 2.terraform使用-以wordpress为例
 
-我们将会介绍如何使用terraform，并且进行一键在青云平台创建下图的结构，并在主机当中运行docker以及nginx。  
-例子源码：https://github.com/yunify/terraform-provider-qingcloud/tree/master/terraform/example/vpc_one_instance
+我们将会介绍如何使用terraform，并且进行一键在青云平台创建下图的结构，并在两台主机当中分别运行wordpress与mysql，最终将wordpress暴露在公网当中。  
+例子源码：https://github.com/yunify/terraform-provider-qingcloud/tree/master/terraform/example/wordpress
 
 > 注意    
 > 使用terraform apply会创建实际的资源，将会产生一些费用。  
 
- ![topo.jpg](./images/topo.jpg)
+ ![topo.jpg](./images/terraform.png)
 
 #### 理解配置文件
 
@@ -140,6 +142,10 @@ terraform的配置文件是HashiCorp公司的[HCL](https://www.terraform.io/docs
 在vpc_one_instance文件夹下运行`terraform init`会看到类似下面的输出：
 ```shell
 $ terraform init
+Initializing modules...
+- module.qingcloud
+- module.wordpress
+
 Initializing provider plugins...
 
 The following providers do not have any version constraints in configuration,
@@ -174,17 +180,17 @@ Terraform v0.11.1
 
 #### 指定provider
 
-在`./vpc_one_instance/var.tf`文件我们指定了provider，qingcloud的provider需要`access_key`与`secret_key`进行调用API，key可以在Qingcloud Web控制台进行申请。  
+在`./provider.tf`文件我们指定了provider，qingcloud的provider需要`access_key`与`secret_key`进行调用API，key可以在Qingcloud Web控制台进行申请。  
 `zone`指定了资源会在哪个区中进行创建，默认为pek3a区。
 
 #### 理解resource
 
 HCL语言是一种声明式语言，即在`*.tf`文件中声明了我们所期望的资源状态。  
-我们在`vpc_one_instance/main.tf`文件当中指定了我们想要的资源以及他们的状态。  
+我们在`./modules/qingcloud/qingcloud.tf`文件当中指定了我们想要的资源以及他们的状态。  
 在定义的资源的时候我们可以在一个资源当中引用其他资源的字段，terraform会自动解析这些引用并且按顺序进行创建。  
 ```hcl
-resource "qingcloud_security_group_rule" "ssh-in" {
-  security_group_id = "${qingcloud_security_group.foo.id}" //引用别名为foo的qingcloud_security_group的id
+resource "qingcloud_security_group_rule" "ssh-wordpress-in" {
+  security_group_id = "${qingcloud_security_group.foo.id}"   //引用别名为foo的qingcloud_security_group的id
   protocol          = "tcp"
   priority          = 0
   action            = "accept"
@@ -194,7 +200,7 @@ resource "qingcloud_security_group_rule" "ssh-in" {
 }
 ```
 在上面的例子当中，`qingcloud_security_group_rule`为资源的名称，需要provider支持特定的资源。  
-`ssh-in`为资源的别名，是在这个项目当中唯一的。  
+`ssh-wordpress-in`为资源的别名，是在这个项目当中唯一的。  
 上面我们创建了一个类型为`qingcloud_security_group_rule`的资源，也就是一个防火墙规则资源。  
 在这个资源中我们指定了防火墙的ID，以及规则的协议、优先级、动作、方向以及端口范围。  
 
@@ -202,12 +208,15 @@ resource "qingcloud_security_group_rule" "ssh-in" {
 * qingcloud_keypair.foo:使用`~/.ssh/id_rsa.pub`的文件内容创建一个SSH key 
 * qingcloud_security_group.foo:创建一个名称为first_sg的防火墙
 * qingcloud_security_group_rule.http-in:为防火墙添加一条接收80端口TCP请求的规则
-* qingcloud_security_group_rule.http-in:为防火墙添加一条接收22端口TCP请求的规则
+* qingcloud_security_group_rule.ssh-wordpress-in:为防火墙添加一条接收22端口TCP请求的规则
+* qingcloud_security_group_rule.ssh-mysql-in:为防火墙添加一条接收2222端口TCP请求的规则
 * qingcloud_vpc.foo:创建一个vpc网络，并且绑定了防火墙与弹性公网IP,VPC的子网范围为`192.168.0.0/16`
 * qingcloud_vxnet:创建一个受管的vxnet，并且加入VPC当中，子网范围是`192.168.0.0/24`
-* qingcloud_instance.foo:创建一个实例，绑定了上面创建的SSH key，并且加入到了vxnet当中
+* qingcloud_instance.wordpress:创建一个实例，绑定了上面创建的SSH key，并且加入到了vxnet当中
+* qingcloud_instance.mysql:创建一个实例，绑定了上面创建的SSH key，并且加入到了vxnet当中
 * qingcloud_vpc_static.http-portforward:为VPC添加一条端口转发规则，将80端口的请求转发到instance的80端口当中
-* qingcloud_vpc_static.ssh-portforward:为VPC添加一条端口转发规则，将22端口的请求转发到instance的22端口当中
+* qingcloud_vpc_static.ssh-wordpress:为VPC添加一条端口转发规则，将22端口的请求转发到qingcloud_instance.wordpress的22端口当中
+* qingcloud_vpc_static.ssh-wordpress:为VPC添加一条端口转发规则，将2222端口的请求转发到qingcloud_instance.mysql的22端口当中
 
 #### 使用Provisioners进行环境配置
 
@@ -226,8 +235,8 @@ resource "qingcloud_instance" "foo" {
 }
 ```
 
-在example当中，我们使用了null_resource再加上provisioner完成了在qingcloud_instance上安装docker并启动docker-nginx。  
-在`null_resource.run_docker_nginx`当中，我们指定了`depends_on`参数，保证了在所有依赖资源创建完成后再进行执行`provisioner`。  
+在example当中，我们使用了null_resource和provisioner完成了qingcloud_instance上安装docker并启动wordpress与mysql。
+在`null_resource.run_docker_wordpress`当中，我们指定了`depends_on`参数，保证了在mysql已经启动成功后再启动wordpress。  
 
 #### 执行terraform plan查看terraform计划
 
@@ -249,10 +258,7 @@ Resource actions are indicated with the following symbols:
 
 Terraform will perform the following actions:
 
-  + null_resource.run_docker_nginx
-      id:                <computed>
-
-  + qingcloud_eip.foo
+  + module.qingcloud.qingcloud_eip.foo
       id:                <computed>
       addr:              <computed>
       bandwidth:         "2"
@@ -261,7 +267,7 @@ Terraform will perform the following actions:
       resource.%:        <computed>
       tag_names.#:       <computed>
 
-  + qingcloud_instance.foo
+  + module.qingcloud.qingcloud_instance.mysql
       id:                <computed>
       cpu:               "1"
       image_id:          "centos73x64"
@@ -274,10 +280,11 @@ Terraform will perform the following actions:
       security_group_id: <computed>
       tag_names.#:       <computed>
 
+
 ......
 
 
-Plan: 11 to add, 0 to change, 0 to destroy.
+Plan: 15 to add, 0 to change, 0 to destroy.
 
 ------------------------------------------------------------------------
 
@@ -285,21 +292,34 @@ Note: You didn't specify an "-out" parameter to save this plan, so Terraform
 can't guarantee that exactly these actions will be performed if
 "terraform apply" is subsequently run.
 
+
 ```
+
+#### 使用module进行代码的组织管理
+
+Terraform中的模块是以组的形式管理不同的Terraform配置。  
+模块用于在Terraform中创建可重用组件，以及用于基本代码组织。  
+每一个module都可以定义自己的input与output，方便代码进行模块化组织。  
+  
+在例子当中我们将配置文件分成了两个module进行处理：  
+module qingcloud负责在qingcloud创建所需要的基础设施资源。  
+module wordpress负责在创建好的虚机当中安装docker并且启动wordpress与mysql。  
+其中需要安装wordpress的机器信息是通过input传入进来的，而传入进来的input实际上是module qingcloud的output，将两个模块连接到了一起。  
+在`./module.tf`当中，我们调用了两个module指定了两个module的参数传递关系。  
 
 #### 使用terraform apply提交资源创建及配置
 
-`terraform apply`命令用于应用所需的更改以达到所需的配置状态。
+`terraform apply`命令用于应用所需的更改以达到所需的配置状态。  
 为了更加方便的得到我们所关注的输出结果，可以使用output单独输出部分字段。
-如在`vpc_one_instance/main.tf`当中，我们单独获取了`qingcloud_vpc.foo`的public_ip：
+如在`./module.tf`当中，我们单独获取了`module.wordpress`的public_ip：
 
 ```hcl-terraform
-output "ip" {
-  value = "${qingcloud_vpc.foo.public_ip}"
+output "wordpress_public_ip" {
+  value = "${module.wordpress.public_ip}"
 }
 ```
 
-填写`vpc_one_instance/var.tf`中的`access_key`与`secret_key`后，我们使用`terraform apply`可以完成资源的创建与配置。
+填写`provider.tf`中的`access_key`与`secret_key`后，我们使用`terraform apply`可以完成资源的创建与配置。
 
 > 注意    
 > 在example中是根据文件来获取SSH key，在您机器上可能不存在此文件，请您自行创建SSH key。  
@@ -308,7 +328,7 @@ output "ip" {
 
 我们会在输出的结尾获取到类似下图的输出：  
  ![output.jpg](./images/output.jpg)  
- 打开浏览器，输入output的IP，可以看到nginx以及响应请求：  
+ 打开浏览器，输入output的IP，可以看到wordpress已经正常运行：  
  ![nginx.jpg](./images/nginx.jpg)  
 
  
