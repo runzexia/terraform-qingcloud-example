@@ -54,7 +54,7 @@ Chef, Puppet, Ansible, and SaltStack 都可以称为配置管理工具，这些�
 Chef and Ansible希望你去一步步编写程序以达到最终所期望的状态。  
 Terraform, CloudFormation, SaltStack, and Puppet希望你去声明最终想要的资源与资源的状态，工具本身会自动分析达到想要的状态需要进行怎样的操作。  
 在使用编程式语言时，工具不会获取历史的状态，所以我们需要考虑的更多以达到与之前版本的兼容。  
-并且使用编程式语言会导致代码库变得越来越庞大，不利用人们理解与代码的复用。  
+并且使用编程式语言会导致代码库变得越来越庞大，不利于人们理解与代码的复用。  
 不过声明式的语言的表达能力是较为欠缺的，例如我们需要基础设施的滚动升级时，声明式的语言是很难满足要求的。  
 为此Terraform提供了一些基础服务，例如[输入变量](https://www.terraform.io/intro/getting-started/variables.html)，[输出变量](https://www.terraform.io/intro/getting-started/outputs.html)，[在销毁之前创建](https://www.terraform.io/docs/configuration/resources.html#create_before_destroy)等。  
 
@@ -68,7 +68,7 @@ Chef, Puppet, and SaltStack在默认情况下都使用了客户端服务器架�
 * 由于客户端，服务器和代理都需要通过网络进行通信，因此您必须为其打开额外的端口，并配置相互验证。  
 * 这些配置会引入大量不同类型的故障，当收到错误警告时，必须要弄清楚是哪一部分出现了故障。
 
-CloudFormation也是客户端/服务器，但AWS透明地处理所有的服务器细节，作为最终用户，您只需要考虑客户端代码。Ansible客户端通过SSH直接连接到您的服务器。  
+CloudFormation也是客户端/服务器架构，但AWS透明地处理所有的服务器细节，作为最终用户，您只需要考虑客户端代码。Ansible客户端则通过SSH直接连接到您的服务器。  
 Terraform使用云提供商API来配置基础架构，因此除了您已经使用云提供商之外，没有新的身份验证机制，并且不需要直接访问您的服务器。  
 
 ### 比较表格
