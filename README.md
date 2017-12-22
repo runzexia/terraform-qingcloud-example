@@ -131,15 +131,14 @@ terraform-provider-qingcloud同样是以二进制文件进行发布，我们可�
 
 #### 理解配置文件
 
-像git一样，每个terraform项目都需要自己的目录，我们可以直接使用vpc_one_instance目录进行试验。  
-在vpc_one_instance目录下面执行terraform相关命令时，terraform会加载这个目录下的`*.tf`文件。  
+Terraform所有的配置文件以tf作为后缀名。在执行相关命令时，terraform会自动加载当前目录下的`*.tf`文件。  
 terraform的配置文件是HashiCorp公司的[HCL](https://www.terraform.io/docs/configuration/syntax.html)语言。
 
 #### terraform init
 
 与git类似，我们需要在terraform项目的根目录运行terraform init去初始化项目。  
 在初始化项目的时候，terraform会解析目录下的`*.tf`文件并加载相关的provider插件。
-在vpc_one_instance文件夹下运行`terraform init`会看到类似下面的输出：
+在wordpress文件夹下运行`terraform init`会看到类似下面的输出：
 ```shell
 $ terraform init
 Initializing modules...
@@ -217,6 +216,8 @@ resource "qingcloud_security_group_rule" "ssh-wordpress-in" {
 * qingcloud_vpc_static.http-portforward:为VPC添加一条端口转发规则，将80端口的请求转发到instance的80端口当中
 * qingcloud_vpc_static.ssh-wordpress:为VPC添加一条端口转发规则，将22端口的请求转发到qingcloud_instance.wordpress的22端口当中
 * qingcloud_vpc_static.ssh-wordpress:为VPC添加一条端口转发规则，将2222端口的请求转发到qingcloud_instance.mysql的22端口当中
+
+其他的资源可以插件的[文档](https://github.com/yunify/terraform-provider-qingcloud/tree/master/website/docs)
 
 #### 使用Provisioners进行环境配置
 
