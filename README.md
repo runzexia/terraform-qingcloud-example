@@ -125,7 +125,7 @@ terraform-provider-qingcloud同样是以二进制文件进行发布，我们可�
 例子源码：https://github.com/yunify/terraform-provider-qingcloud/tree/master/terraform/example/wordpress
 
 > 注意    
-> 使用terraform apply会创建实际的资源，将会产生一些费用。  
+> 使用terraform apply会创建实际的资源，可能会产生一些费用。  
 
  ![topo.jpg](./images/terraform.png)
 
