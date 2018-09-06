@@ -3,6 +3,11 @@ pipeline {
   stages {
     stage('lalala') {
       parallel {
+        stage('test1') {
+          steps {
+            echo 'hhhh'
+          }
+        }
         stage('1') {
           steps {
             archiveArtifacts(fingerprint: true, allowEmptyArchive: true, artifacts: 'README.md', caseSensitive: true, defaultExcludes: true)
